@@ -1,0 +1,11 @@
+{
+    "dataset_name": "GridShapes",
+    "shuffle_train": true,
+    "shuffle_eval": false,
+    "datapath": "/home/user/villar/datasets/GridShapes",
+    "variant": "base_1_objs",
+    "num_frames": 20,
+    "num_balls": 1,
+    "change_prob": 0.25,
+    "use_bkgr": false
+}

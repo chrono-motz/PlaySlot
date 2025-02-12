@@ -1,0 +1,32 @@
+{
+    "predictor_name": "SlotLatentPredictor",
+    "predictor_params": {
+        "num_actions": 4,
+        "action_dim": 16,
+        "slot_dim": 64,
+        "condition_mode": "sum",
+        "use_variability": false,
+        "autoregressive_dynamics": true,
+        "LatentAction": {
+            "model_name": "VQSimpleMLPSlotLatentAction",
+            "model_params": {
+                "emb_dim": 128,
+                "hidden_dim": 256,
+                "use_ema_vq": true
+            }
+        },
+        "DynamicsModel": {
+            "model_name": "SlotGPTDymamicsModel",
+            "model_params": {
+                "residual": false,
+                "embed_dim": 128,
+                "head_dim": 32,
+                "num_heads": 4,
+                "mlp_size": 512,
+                "num_layers": 4,
+                "context_length": 6,
+                "pos_enc_dropout": 0.0
+            }
+        }
+    }
+}

@@ -1,0 +1,114 @@
+#!/bin/bash
+
+rm -r resources
+git clone git@github.com:maltemosbach/multi-object-fetch.git
+mkdir -p resources
+mv multi-object-fetch resources/
+
+
+CONDA_ENV_NAME=$(head -1 ./environment.yml | cut -f2 -d' ')
+MUJOCO_PATH="$HOME/.mujoco/mujoco210"
+MUJOCO_LD_PATHS=("$HOME/.mujoco/mujoco210/bin" "/usr/lib/nvidia")
+
+cd resources/multi-object-fetch
+
+# Check if MuJoCo is installed.
+echo "Checking if MuJoCo version is installed"
+if [ ! -d $MUJOCO_PATH ]; then
+    echo "MuJoCo installation not found. Installing MuJoCo 2.1.0."
+    wget "https://github.com/deepmind/mujoco/releases/download/2.1.0/mujoco210-linux-x86_64.tar.gz"
+    mkdir -p "$HOME/.mujoco"
+    tar -xf mujoco210-linux-x86_64.tar.gz -C "$HOME/.mujoco"
+    rm mujoco210-linux-x86_64.tar.gz
+fi
+
+# Check environment variables needed by MuJoCo.
+echo "Preparing stuff for MuJoCo and installing MoF"
+source $HOME/.bashrc
+ENVIRONMENT_VARIABLES_ADDED=false
+for path in "${MUJOCO_LD_PATHS[@]}"; do
+    if [[ -z "$LD_LIBRARY_PATH" ]] || [[ $LD_LIBRARY_PATH != *"$path"* ]]; then
+        if [ "$ENVIRONMENT_VARIABLES_ADDED" = false ]; then
+            echo "# >>> The following lines were added by multi-object-fetch/create_conda_env.sh >>>" >> $HOME/.bashrc
+            ENVIRONMENT_VARIABLES_ADDED=true
+        fi
+        echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$path" >> $HOME/.bashrc
+    fi
+done
+if [[ -z "$MUJOCO_PY_MUJOCO_PATH" ]] || [[ $MUJOCO_PY_MUJOCO_PATH != "$HOME/.mujoco/mujoco210" ]]; then
+    if [ "$ENVIRONMENT_VARIABLES_ADDED" = false ]; then
+            echo "# >>> The following lines were added by visual-block-builder/create_conda_env.sh >>>" >> $HOME/.bashrc
+            ENVIRONMENT_VARIABLES_ADDED=true
+    fi
+    echo "export MUJOCO_PY_MUJOCO_PATH=$HOME/.mujoco/mujoco210" >> $HOME/.bashrc
+fi
+
+if [ "$ENVIRONMENT_VARIABLES_ADDED"=true ]; then
+    echo "# <<< End of lines added by multi-object-fetch/create_conda_env.sh <<<" >> $HOME/.bashrc
+fi
+source $HOME/.bashrc
+
+# Source conda.
+CONDA_DIR="$(conda info --base)"
+source "${CONDA_DIR}/etc/profile.d/conda.sh"
+
+# Deactivate environment to be created, if it is active.
+ACTIVE_ENV_NAME="$(basename ${CONDA_PREFIX})"
+if [ "${CONDA_ENV_NAME}" = "${ACTIVE_ENV_NAME}" ]; then
+    conda deactivate
+fi
+
+# Remove existing version of this environment.
+echo "Removing old version of environment."
+conda remove -y -n "${CONDA_ENV_NAME}" --all
+
+# Remove existing version of fetch-block-construction package.
+rm -rf ./src/fetch-block-construction
+
+cd ..
+cd ..
+
+# Create environment from YAML.
+echo "Installing PlaySlot Conda Environment"
+
+# conda install -n base -c conda-forge mamba
+conda env create -f ./environment.yml
+if [ $? -ne 0 ]; then
+    echo "Failed to create $CONDA_ENV_NAME conda environment."
+    exit 1
+fi
+
+# Activate environment.
+conda activate "${CONDA_ENV_NAME}"
+if [ $? -ne 0 ]; then
+    echo "Failed to activate $CONDA_ENV_NAME conda environment."
+    exit 1
+fi
+
+# Install the Python package.
+pip install -e .
+
+# installing fetch block
+echo ""
+echo ""
+echo "Installing fetch block construction"
+mv ./src/fetch-block-construction ./resources/fetch-block-construction
+cd ./resources/fetch-block-construction
+pip install -e .
+
+
+# installing multi-obj-fetch
+echo ""
+echo ""
+echo "Installing Multi-Object Fetch"
+cd ./resources/multi-object-fetch
+pip install -e .
+
+
+cd ..
+cd ..
+
+echo ""
+echo ""
+echo "Installing Metaworld"
+pip install git+https://github.com/Farama-Foundation/Metaworld.git@master#egg=metaworld

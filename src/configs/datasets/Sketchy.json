@@ -1,0 +1,11 @@
+{
+    "dataset_name": "Sketchy",
+    "shuffle_train": true,
+    "shuffle_eval": false,
+    "datapath": "/home/user/villar/datasets/PlaySlotDBs/Sketchy",
+    "num_frames": 6,
+    "seq_step": 1,
+    "img_size": [64, 64],
+    "max_overlap": 0,
+    "mode": "all"
+}

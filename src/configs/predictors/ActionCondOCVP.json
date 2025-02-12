@@ -1,0 +1,22 @@
+{
+    "predictor_name": "ActionCondOCVP",
+    "predictor_params": {
+        "slot_dim": 128,
+        "raw_action_dim": 4,
+        "action_embed_dim": 16,
+        "condition_mode": "sum",
+        "autoregressive_dynamics": true,
+        "DynamicsModel": {
+            "model_name": "SlotGPTDymamicsModel",
+            "model_params": {
+                "residual": false,
+                "embed_dim": 128,
+                "head_dim": 64,
+                "num_heads": 4,
+                "mlp_size": 512,
+                "num_layers": 4,
+                "pos_enc_dropout": 0.0
+            }
+        }
+    }
+}

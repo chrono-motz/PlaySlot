@@ -1,0 +1,12 @@
+{
+    "dataset_name": "ButtonPress_ExpertDemos",
+    "shuffle_train": true,
+    "shuffle_eval": false,
+    "datapath": "/home/user/villar/datasets/PlaySlotDBs/ButtonPress/Expert_ButtonPress",
+    "variant": "hammer",
+    "num_frames": 20,
+    "sample_rate": 1,
+    "random_start": true,
+    "img_size": [64, 64],
+    "num_expert_demos": -1
+}

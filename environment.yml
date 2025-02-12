@@ -1,0 +1,34 @@
+name: PlaySlot
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - jupyterlab
+  - pillow==9.0.1
+  - pip
+  - python=3.9.12
+  - pytorch=1.11.0=py3.9_cuda11.3_cudnn8.2.0_0
+  - torchaudio=0.11.0=py39_cu113
+  - torchvision=0.12.0=py39_cu113
+  - pip:
+      - argparse
+      - colormath
+      - cython<3
+      - -e git+https://github.com/EwertzJN/fetch-block-construction.git@master#egg=fetch_block_construction
+      - gym<=0.17.3
+      - mujoco-py 
+      - opencv-python
+      - pynput
+      - tabulate
+      - tqdm
+      - imageio
+      - matplotlib
+      - numba
+      - piqa
+      - scikit-image
+      - scikit-learn
+      - scipy
+      - tensorboard
+      - webcolors
+      - piqa==1.2.2
+      - numpy==1.24.3

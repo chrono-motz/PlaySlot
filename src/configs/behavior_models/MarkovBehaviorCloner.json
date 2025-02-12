@@ -1,0 +1,10 @@
+{
+    "model_name": "MarkovBehaviorCloner",
+    "model_params": {
+        "emb_dim": 128,
+        "num_layers": 4,
+        "num_heads": 4,
+        "head_dim": 32,
+        "mlp_dim": 512
+    }
+}
