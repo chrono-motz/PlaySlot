@@ -112,3 +112,7 @@ echo ""
 echo ""
 echo "Installing Metaworld"
 pip install git+https://github.com/Farama-Foundation/Metaworld.git@master#egg=metaworld
+
+
+conda activate PlaySlot
+pip install Pillow==9.5.0
