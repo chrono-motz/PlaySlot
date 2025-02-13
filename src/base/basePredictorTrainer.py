@@ -176,12 +176,12 @@ class BasePredictorTrainer:
 
         # logging models
         utils.log_architecture(
-                self.savi.module,
+                self.savi,
                 exp_path=self.exp_path,
                 fname="architecture_savi.txt"
             )
         utils.log_architecture(
-                self.predictor.module,
+                self.predictor,
                 exp_path=self.exp_path,
                 fname="architecture_predictor.txt"
             )

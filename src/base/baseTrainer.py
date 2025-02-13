@@ -185,7 +185,7 @@ class BaseTrainer:
         Wrapper for saving a models in a more convenient manner
         """
         setup_model.save_checkpoint(
-                model=self.model.module,
+                model=self.model,
                 optimizer=self.optimizer,
                 scheduler=self.warmup_scheduler.scheduler,
                 lr_warmup=self.warmup_scheduler.lr_warmup,

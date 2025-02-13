@@ -8,12 +8,7 @@ import os
 ### CONFIGS ###
 ###############
 
-# hack to fix paths when run from notebooks
 project_path = os.getcwd()
-while os.path.basename(project_path) != "ConditionedOCVP":
-    project_path = os.path.dirname(project_path)
-
-
 CONFIG = {
     "random_seed": 13,
     "num_workers": 8,
