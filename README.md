@@ -1,6 +1,6 @@
 # PlaySlot: Controllable Object-Centric Video Prediction
 
-Official implementation of: *PlaySlot: Learning Inverse Latent Dynamics for Controllable Object-Centric Video Prediction and Planning*  by [Angel Villar-Corrales](http://angelvillarcorrales.com/templates/home.php) and [Sven Behnke](https://www.ais.uni-bonn.de/behnke/). ArXiv Preprint. 2025.
+Official implementation of: *PlaySlot: Learning Inverse Latent Dynamics for Controllable Object-Centric Video Prediction and Planning*  by [Angel Villar-Corrales](http://angelvillarcorrales.com/templates/home.php) and [Sven Behnke](https://www.ais.uni-bonn.de/behnke/). ICML. 2025.
 
 [[`Paper`](https://arxiv.org/abs/2502.07600)]
 &nbsp;&nbsp; 
@@ -83,11 +83,9 @@ chmod +x download_pretrained.sh
 
 3. Download the datasets:
 
- - **ButtonPress:** Coming soon!
+ - **ButtonPress:** Contact the authors at `villar@ais.uni-bonn.de`.
 
- - **BlockPush:** Coming soon!
-
- - **GridShapes:** Coming soon!
+ - **BlockPush:** Contact the authors at `villar@ais.uni-bonn.de`.
 
  - **Sketchy:** For downloading the Sketchy robot dataset, we refer to the [original source](https://github.com/google-deepmind/deepmind-research/tree/master/sketchy)
  
@@ -423,10 +421,10 @@ This repository is maintained by [Angel Villar-Corrales](http://angelvillarcorra
 Please consider citing our paper if you find our work or our repository helpful.
 
 ```
-@article{villar_PlaySlot_2025,
+@inproceedings{villar_PlaySlot_2025,
   title={PlaySlot: Learning Inverse Latent Dynamics for Controllable Object-Centric Video Prediction and Planning},
   author={Villar-Corrales, Angel and Behnke, Sven},
-  journal={arXiv preprint arXiv:2502.07600},
+  booktitle={International Conference on Machine Learning (ICML)},
   year={2025}
 }
 ```
