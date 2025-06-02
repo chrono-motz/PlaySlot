@@ -83,9 +83,13 @@ chmod +x download_pretrained.sh
 
 3. Download the datasets:
 
- - **ButtonPress:** Contact the authors at `villar@ais.uni-bonn.de`.
+ - **ButtonPress & BlockPush:** You can automatically download and place the ButtonPress and BlockPush datasets
+ by running the following commands:
+  ```
+  chmod +x download_datasets.sh
+  ./download_datasets.sh
+  ```
 
- - **BlockPush:** Contact the authors at `villar@ais.uni-bonn.de`.
 
  - **Sketchy:** For downloading the Sketchy robot dataset, we refer to the [original source](https://github.com/google-deepmind/deepmind-research/tree/master/sketchy)
  

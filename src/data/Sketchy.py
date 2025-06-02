@@ -73,12 +73,18 @@ class Sketchy(Dataset):
         """ Dataset initializer"""
         assert mode in Sketchy.MODES, f"Unknown {mode = }. Use on of {Sketchy.MODES}..."
         assert split in ["train", "val", "valid", "test"]
-        split = "val" if split == "valid" else split
+        
+        self.is_custom = split in ["val", "valid", "test"]
+        split = "val" if split in ["valid", "test"] else split
         assert max_overlap <= 0.95 and max_overlap >= 0
         self.data_dir = datapath
         if not os.path.exists(self.data_dir):
             raise FileNotFoundError(f"Sketchy dataset does not exist in {self.data_dir}...")
 
+        if split != "train":
+            print("Setting Sketchy mode to Full-Only!")
+            mode = "full_only"
+        
         # dataset parameters
         self.split = split
         self.given_num_frames = num_frames
@@ -96,6 +102,17 @@ class Sketchy(Dataset):
         self.episode_data = self._get_episode_data()
         self.episode_names = list(self.episode_data.keys())
         self.valid_sequences, self.valid_sequence_keys = self._find_valid_sequences()
+        
+        if self.is_custom:
+            new_valid_sequence_keys = []
+            new_valid_sequences = {}
+            for ep_name in self.episode_names:
+                new_valid_sequence_keys.append(f"{ep_name}/fl_full")
+                new_valid_sequences[ep_name] = {}
+                new_valid_sequences[ep_name]["fl_full"] = self.valid_sequences[f"{ep_name}_0"]["fl_full"]
+                new_valid_sequences[ep_name]["actions"] = self.valid_sequences[f"{ep_name}_0"]["actions"]
+            self.valid_sequences = new_valid_sequences
+            self.valid_sequence_keys = new_valid_sequence_keys
         return
 
     def __len__(self):
@@ -120,7 +137,7 @@ class Sketchy(Dataset):
         imgs = self.resizer(imgs)
 
         data = {
-                "actions": actions,
+                "actions": torch.tensor(actions),
                 "episode": episode,
                 "seq_type": seq,
                 "frame_names": cur_frames

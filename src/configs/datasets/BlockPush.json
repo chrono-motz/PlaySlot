@@ -2,7 +2,7 @@
     "dataset_name": "BlockPush",
     "shuffle_train": true,
     "shuffle_eval": false,
-    "datapath": "/home/villar/datasets/PlaySlotDBs/BlockPush/BlockPush",
+    "datapath": "./datasets/BlockPush/BlockPush",
     "num_frames": 8,
     "img_size": [64, 64],
     "random_start": false

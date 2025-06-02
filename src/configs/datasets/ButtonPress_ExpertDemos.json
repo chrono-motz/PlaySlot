@@ -2,7 +2,7 @@
     "dataset_name": "ButtonPress_ExpertDemos",
     "shuffle_train": true,
     "shuffle_eval": false,
-    "datapath": "/home/user/villar/datasets/PlaySlotDBs/ButtonPress/Expert_ButtonPress",
+    "datapath": "./datasets/ButtonPress/Expert_ButtonPress",
     "variant": "hammer",
     "num_frames": 20,
     "sample_rate": 1,

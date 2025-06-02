@@ -332,10 +332,7 @@ class GridShapes(BaseGridShapes):
     def _sample_speed(self):
         """ Sampling moving speed of the objects """
         speed = int(2 * (self.img_size / 64))
-        if self.grid_move:
-            speed_v = [speed, 0] if np.random.rand() > 0.5 else [0, speed]
-        else:
-            speed_v = [speed, speed]
+        speed_v = [speed, 0] if np.random.rand() > 0.5 else [0, speed]
         return speed_v
 
     def __len__(self):

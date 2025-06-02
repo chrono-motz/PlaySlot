@@ -65,6 +65,8 @@ class Trainer(BasePredictorTrainer):
 
         # predicting future slots
         actions = others.get("actions", None)
+        if actions is not None:
+            actions = actions.to(self.device)
         pred_slots, _ = self.predictor(
             slot_history=slot_history,
             use_posterior=self.predictor.training,
@@ -113,12 +115,21 @@ class Trainer(BasePredictorTrainer):
 
         # forward pass
         videos, _, _, _ = unwrap_batch_data(self.exp_params, batch_data)
+        B, num_frames = videos.shape[0], videos.shape[1]
         out_model, _ = self.forward_loss_metric(
                 batch_data=batch_data,
                 training=False,
                 inference_only=True
             )
         pred_imgs, pred_recons, pred_masks = out_model
+
+        # unpacking batch and num_frames
+        _, num_slots, _, H, W = pred_recons.shape
+        pred_imgs = pred_imgs.reshape([B, num_frames-1, 3, H, W])
+        pred_recons = pred_recons.reshape([B, num_frames-1, num_slots, 3, H, W])
+        pred_masks = pred_masks.reshape([B, num_frames-1, num_slots, 1, H, W])
+
+        # getting only predicted stuff
         pred_imgs = pred_imgs[:, num_context-1:num_context+num_preds-1]
         pred_recons = pred_recons[:, num_context-1:num_context+num_preds-1]
         pred_masks = pred_masks[:, num_context-1:num_context+num_preds-1]
@@ -137,7 +148,7 @@ class Trainer(BasePredictorTrainer):
             )
             self.writer.add_figure(tag=f"Qualitative Eval {k+1}", figure=fig, step=iter_)
 
-            objs = pred_masks[k*num_preds:(k+1)*num_preds] * pred_recons[k*num_preds:(k+1)*num_preds]
+            objs = pred_masks[k, :num_preds] * pred_recons[k, :num_preds]
             _ = visualize_decomp(
                     objs.clamp(0, 1),
                     savepath=None,
@@ -146,7 +157,7 @@ class Trainer(BasePredictorTrainer):
                     iter=iter_
                 )
             _ = visualize_decomp(
-                    pred_masks[k*num_preds:(k+1)*num_preds],
+                    pred_masks[k, :num_preds],
                     savepath=None,
                     tag=f"Pred. Masks. {k+1}",
                     iter=iter_,

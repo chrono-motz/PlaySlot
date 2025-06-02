@@ -2,7 +2,7 @@
     "dataset_name": "BlockPush_ExpertDemos",
     "shuffle_train": true,
     "shuffle_eval": false,
-    "datapath": "/home/villar/datasets/PlaySlotDBs/BlockPush/Expert_BlockPush",
+    "datapath": "./datasets/BlockPush/Expert_BlockPush",
     "num_frames": 6,
     "img_size": [64, 64],
     "random_start": true,

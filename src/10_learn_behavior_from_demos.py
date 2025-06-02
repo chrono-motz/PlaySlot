@@ -185,7 +185,8 @@ class Trainer(BasePredictorTrainer, BaseEvaluator):
         # We remove the last time-step, which was only needed for inverse dynamics
         causal_slots = slot_history[:, :-1].detach()
         pred_latent_actions = self.policy_model(causal_slots)
-        pred_actions = self.action_decoder(pred_latent_actions)
+        # pred_actions = self.action_decoder(pred_latent_actions.detach())
+        pred_actions = self.action_decoder(pred_latent_actions.detach())
         out = (pred_latent_actions, pred_actions)
 
         # Generating only model outputs

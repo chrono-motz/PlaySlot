@@ -14,6 +14,12 @@ from lib.logger import Logger, print_
 import lib.utils as utils
 import lib.visualizations as visualizations
 
+# hack to avoid weird port error in cluster
+import multiprocessing
+import multiprocessing.util
+multiprocessing.util.abstract_sockets_supported = False
+mgr = multiprocessing.Manager()
+
 
 
 class Trainer(BasePredictorTrainer):
@@ -149,8 +155,8 @@ class Trainer(BasePredictorTrainer):
         # autoregressively predicting next tokes
         pred_slots, _ = self.predictor.autoregressive_inference(
                 slot_history[:, :num_context],
-                action_embs=action_protos,
-                latents=action_vars,
+                action_protos=action_protos,
+                action_vars=action_vars,
                 N=num_preds
             )
 
