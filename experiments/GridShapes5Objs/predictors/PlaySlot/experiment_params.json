@@ -1,0 +1,138 @@
+{
+    "dataset": {
+        "dataset_name": "GridShapes",
+        "shuffle_train": true,
+        "shuffle_eval": false,
+        "num_frames": 8,
+        "num_balls": 5
+    },
+    "model": {
+        "model_name": "SAVi",
+        "model_params": {
+            "num_slots": 6,
+            "slot_dim": 128,
+            "num_iterations_first": 3,
+            "num_iterations": 1,
+            "in_channels": 3,
+            "mlp_hidden": 128,
+            "mlp_encoder_dim": 128,
+            "initializer": "LearnedRandom",
+            "transition_module_params": {
+                "model_name": "TransformerBlock",
+                "num_heads": 4,
+                "head_dim": 32,
+                "mlp_size": 512
+            },
+            "encoder": {
+                "encoder_name": "ConvEncoder",
+                "encoder_params": {
+                    "num_channels": [
+                        64,
+                        64,
+                        64,
+                        64
+                    ],
+                    "kernel_size": 5,
+                    "resolution": [
+                        64,
+                        64
+                    ],
+                    "downsample_encoder": false,
+                    "downsample": 2
+                }
+            },
+            "decoder": {
+                "decoder_name": "ConvDecoder",
+                "decoder_params": {
+                    "num_channels": [
+                        64,
+                        64,
+                        64,
+                        64
+                    ],
+                    "kernel_size": 5,
+                    "resolution": [
+                        64,
+                        64
+                    ],
+                    "downsample_decoder": false,
+                    "upsample": 1
+                }
+            }
+        }
+    },
+    "predictor": {
+        "predictor_name": "SlotLatentPredictor",
+        "predictor_params": {
+            "num_actions": 5,
+            "action_dim": 8,
+            "slot_dim": 128,
+            "condition_mode": "sum",
+            "use_variability": false,
+            "autoregressive_dynamics": true,
+            "LatentAction": {
+                "model_name": "VQSimpleMLPSlotLatentAction",
+                "model_params": {
+                    "emb_dim": 128,
+                    "hidden_dim": 256,
+                    "use_ema_vq": true
+                }
+            },
+            "DynamicsModel": {
+                "model_name": "SlotGPTDymamicsModel",
+                "model_params": {
+                    "residual": false,
+                    "embed_dim": 128,
+                    "head_dim": 64,
+                    "num_heads": 8,
+                    "mlp_size": 512,
+                    "num_layers": 8,
+                    "pos_enc_dropout": 0.0
+                }
+            }
+        }
+    },
+    "predictor_loss": [
+        {
+            "type": "pred_img_mse",
+            "weight": 1
+        },
+        {
+            "type": "pred_slot_mse",
+            "weight": 1
+        },
+        {
+            "type": "VQLoss",
+            "weight": 1,
+            "beta": 0.25
+        },
+        {
+            "type": "ActionDirKLD",
+            "weight": 1e-6,
+            "cov": 1.0
+        }
+    ],
+    "training": {
+        "num_epochs": 1500,
+        "save_frequency": 25,
+        "log_frequency": 150,
+        "image_log_frequency": 300,
+        "batch_size": 64,
+        "train_iters_per_epoch": 1000,
+        "valid_iters_per_epoch": 1000,
+        "lr": 0.0002,
+        "scheduler": "cosine_annealing",
+        "scheduler_steps": 250000.0,
+        "lr_warmup": true,
+        "warmup_steps": 1000,
+        "gradient_clipping": true,
+        "clipping_max_value": 0.05
+    },
+    "prediction_params": {
+        "num_context": 6,
+        "num_preds": 8,
+        "teacher_force": false,
+        "sample_length": 14
+    },
+    "_general": {}
+}

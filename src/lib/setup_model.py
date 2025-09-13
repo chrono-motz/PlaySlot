@@ -13,7 +13,11 @@ from configs import get_available_configs
 
 from models.Predictors.predictor_wrappers import PredictorWrapper
 
+import torch
+from lib.schedulers import LRWarmUp
 
+# allowlist LRWarmUp so torch.load works
+torch.serialization.add_safe_globals([LRWarmUp])
 
 ###########################
 ## MODEL FACTORY METHODS ##

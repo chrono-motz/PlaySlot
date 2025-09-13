@@ -54,8 +54,12 @@ class Trainer(BasePredictorTrainer):
         slot_dim = self.savi.slot_dim
 
         # fetching and checking data
-        videos, _, initializer_kwargs, _ = unwrap_batch_data(self.exp_params, batch_data)
+        videos, _, initializer_kwargs, others = unwrap_batch_data(self.exp_params, batch_data)
         videos = videos.to(self.device)
+        actions = others.get("actions", None)
+        if actions is not None:
+            actions = actions.to(self.device)
+        
         B, _, C, H, W = videos.shape
         num_context = self.exp_params["prediction_params"]["num_context"]
         num_preds = self.exp_params["prediction_params"]["num_preds"]
@@ -70,16 +74,17 @@ class Trainer(BasePredictorTrainer):
                 )
             slot_history = out_model["slot_history"]
 
-        # predicting future slots
+        # predicting future slots using actions directly, bypassing InvDyn
         pred_slots, pred_others = self.predictor(
                 imgs=videos,
                 slots=slot_history,
+                actions=actions, # Pass actions directly
                 num_seed=num_context,
                 num_preds=num_preds
             )
 
         # rendering future objects and frames from predicted object slots
-        T = num_context  + num_preds - 1
+        T = num_context + num_preds - 1
         pred_slots_dec = pred_slots.clone().reshape(B * T, num_slots, slot_dim)
         img_recons, (pred_recons, pred_masks) = self.savi.decode(pred_slots_dec)
         pred_imgs = img_recons.view(B, T, C, H, W)
@@ -90,12 +95,12 @@ class Trainer(BasePredictorTrainer):
                 "pred_objs": pred_recons,
                 "pred_masks": pred_masks,
                 **pred_others
-            }        
+            }
         if inference_only:
             return out_model, None
 
         # computing loss on all slots and images, including those from the context
-        # NOTE: It is important to compute the loss in all so that we can later learn 
+        # NOTE: It is important to compute the loss in all so that we can later learn
         #       behaviors starting with a single seed frame!
         pred_imgs = pred_imgs[:, :num_context+num_preds-1]
         pred_slots = pred_slots[:, :num_context+num_preds-1]
@@ -113,12 +118,12 @@ class Trainer(BasePredictorTrainer):
             )
         loss = self.loss_tracker.get_last_losses(total_only=True)
         if training:
-            self.optimization(loss=loss, iter_=self.iter_, epoch=self.epoch )
+            self.optimization(loss=loss, iter_=self.iter_, epoch=self.epoch)
         return out_model, loss
 
 
     @torch.no_grad()
-    def inference(self, imgs, init_kwargs, use_posterior=False, num_context=None, num_preds=None):
+    def inference(self, imgs, init_kwargs, use_posterior=False, num_context=None, num_preds=None, actions=None):
         """
         Running inference through the model for video prediction.
         This function is used for logging visualizations to the tensorboard.
@@ -138,32 +143,23 @@ class Trainer(BasePredictorTrainer):
         slot_history = out_model["slot_history"]
         B, _, num_slots, slot_dim = slot_history.shape
 
-        # computing latent actions using Inverse-Dynamics module
-        if use_posterior:
-            latent_action_model = self.predictor.latent_action
-            out_dict = latent_action_model.compute_actions(slot_history)
-            action_protos = out_dict.get("action_proto")
-            action_vars = out_dict.get("action_variability", None)
-            if len(action_protos.shape) == 3:  # inflating actions in InvDynS
-                action_protos = action_protos.unsqueeze(2).repeat(1, 1, num_slots, 1)
-                if action_vars is not None:
-                    action_vars = action_vars.unsqueeze(2).repeat(1, 1, num_slots, 1)
-        else:
-            action_protos = None
-            action_vars = None
-
-        # autoregressively predicting next tokes
-        pred_slots, _ = self.predictor.autoregressive_inference(
-                slot_history[:, :num_context],
-                action_protos=action_protos,
-                action_vars=action_vars,
-                N=num_preds
+        # predicting future slots using actions directly
+        pred_slots, _ = self.predictor(
+                imgs=imgs,
+                slots=slot_history,
+                actions=actions,
+                num_seed=num_context,
+                num_preds=num_preds
             )
 
         # rendering future objects and frames from predicted object slots
-        pred_slots_dec = pred_slots.clone().reshape(B * num_preds, num_slots, slot_dim)
+        T = num_context + num_preds - 1  # Total time steps in pred_slots
+        pred_slots_dec = pred_slots.clone().reshape(B * T, num_slots, slot_dim)
         img_recons, (pred_recons, pred_masks) = self.savi.decode(pred_slots_dec)
-        pred_imgs = img_recons.view(B, num_preds, *imgs.shape[-3:])
+        pred_imgs = img_recons.view(B, T, *imgs.shape[-3:])
+        
+        # Extract only the predicted frames (after context)
+        pred_imgs = pred_imgs[:, num_context-1:, :, :, :]
         
         out_model = {
             "pred_imgs": pred_imgs,
@@ -186,49 +182,37 @@ class Trainer(BasePredictorTrainer):
         # predition visualizations
         num_context = self.exp_params["prediction_params"]["num_context"]
         num_preds = self.exp_params["prediction_params"]["num_preds"]
-        imgs, _, init_kwargs, _ = unwrap_batch_data(self.exp_params, batch_data)
+        imgs, _, init_kwargs, others = unwrap_batch_data(self.exp_params, batch_data)
         imgs = imgs.to(self.device)
+        actions = others.get("actions", None)
+        if actions is not None:
+            actions = actions.to(self.device)
         self.visualizations_inference(
                 imgs=imgs,
                 init_kwargs=init_kwargs,
                 num_context=num_context,
                 num_preds=num_preds,
+                actions=actions,
                 iter_=iter_
-            )        
+            )
         return
 
 
-    def visualizations_inference(self, imgs, init_kwargs, num_context, num_preds, iter_):
-        """ 
+    def visualizations_inference(self, imgs, init_kwargs, num_context, num_preds, actions, iter_):
+        """
         Visualizing the results of an inference run
         """
         # inference with posterior and three random samples from the prior
-        out_post = self.inference(imgs, init_kwargs, use_posterior=True)
-        out_prior = [
-                self.inference(imgs, init_kwargs, use_posterior=False)["pred_imgs"]
-                for _ in range(3)
-            ]
-        all_preds = torch.stack([out_post["pred_imgs"]] + out_prior, dim=1)
+        # Note: The 'use_posterior' flag is now ignored, as we are using
+        #       direct actions instead of latent actions.
+        out_post = self.inference(imgs, init_kwargs, use_posterior=False, 
+                                 num_context=num_context, num_preds=num_preds, actions=actions)
+        all_preds = torch.stack([out_post["pred_imgs"]] + [out_post["pred_imgs"]] * 3, dim=1) # Repeat for consistency
         all_preds = all_preds.clamp(0, 1)
         imgs = imgs.clamp(0, 1)
 
         seed_imgs = imgs[:, :num_context, :, :]
         target_imgs = imgs[:, num_context:num_context+num_preds, :, :]
-
-        # Visualizing pairwise-distance between codewords and histogram of their usage
-        if hasattr(self.predictor.latent_action, "quantizer"):
-            # visualizing pairwise distance between codewords
-            codewords = self.predictor.latent_action.quantizer.get_codewords()
-            fig, _ = visualizations.visualize_distance_between_centroids(codewords)
-            self.writer.add_figure(tag=f"Centroid Distance", figure=fig, step=iter_)                
-            # visualizing codeword counts
-            action_bins = self.predictor.latent_action.quantizer.get_hist()
-            _ = visualizations.visualize_bins_count(
-                    bins=action_bins,
-                    tb_writer=self.writer,
-                    iter=iter_,
-                    tag=f"Action_Bins"
-                )         
 
         # prediction visualitations
         N = min(3, imgs.shape[0])
@@ -254,8 +238,13 @@ class Trainer(BasePredictorTrainer):
             self.writer.add_figure(tag=f"Stochastic Eval {k+1}", figure=fig, step=iter_)
 
             # predicted objects and alpha masks
-            pred_objs = out_post["pred_objs"][k*num_preds:(k+1)*num_preds]
-            pred_masks = out_post["pred_masks"][k*num_preds:(k+1)*num_preds]
+            # The pred_objs/pred_masks contain T frames, we want the last num_preds frames for visualization
+            T = num_context + num_preds - 1
+            pred_frames_start = num_context - 1  # Start from this frame index
+            obj_start_idx = k * T + pred_frames_start
+            obj_end_idx = k * T + T  # Take all remaining frames
+            pred_objs = out_post["pred_objs"][obj_start_idx:obj_end_idx]
+            pred_masks = out_post["pred_masks"][obj_start_idx:obj_end_idx]
             _ = visualizations.visualize_decomp(
                     (pred_objs * pred_masks).clamp(0, 1),
                     savepath=None,
@@ -268,7 +257,7 @@ class Trainer(BasePredictorTrainer):
 
 if __name__ == "__main__":
     utils.clear_cmd()
-    
+
     # process command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -299,20 +288,20 @@ if __name__ == "__main__":
             action='store_true'
         )
     args = parser.parse_args()
-    
+
     # sanity checks on arguments
     exp_path = utils.process_experiment_directory_argument(args.exp_directory)
     savi_ckpt = utils.process_checkpoint_argument(exp_path, args.savi_ckpt)
     args.name_pred_exp = utils.process_predictor_experiment(
             exp_directory=exp_path,
-            name_predictor_experiment=args.name_pred_exp,    
+            name_predictor_experiment=args.name_pred_exp,
         )
     args.checkpoint = utils.process_predictor_checkpoint(
             exp_path=exp_path,
             name_predictor_experiment=args.name_pred_exp,
             checkpoint=args.checkpoint
         )
-    
+
     # Trainer and so on
     logger = Logger(exp_path=f"{exp_path}/{args.name_pred_exp}")
     logger.log_info(
@@ -336,6 +325,3 @@ if __name__ == "__main__":
     trainer.setup_predictor()
     print_("Starting to train")
     trainer.training_loop()
-
-
-#

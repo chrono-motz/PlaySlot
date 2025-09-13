@@ -1,0 +1,153 @@
+{
+    "dataset": {
+        "dataset_name": "ButtonPress_ExpertDemos",
+        "shuffle_train": true,
+        "shuffle_eval": false,
+        "datapath": "/home/user/villar/datasets/PlaySlotDBs/ButtonPress/Expert_ButtonPress",
+        "num_frames": 25,
+        "sample_rate": 1,
+        "img_size": [
+            64,
+            64
+        ],
+        "random_start": true,
+        "num_expert_demos": -1
+    },
+    "model": {
+        "model_name": "SAVi",
+        "model_params": {
+            "num_slots": 4,
+            "slot_dim": 128,
+            "num_iterations_first": 3,
+            "num_iterations": 1,
+            "in_channels": 3,
+            "mlp_hidden": 256,
+            "mlp_encoder_dim": 128,
+            "initializer": "Learned",
+            "transition_module_params": {
+                "model_name": "TransformerBlock",
+                "num_heads": 4,
+                "head_dim": 32,
+                "mlp_size": 512
+            },
+            "encoder": {
+                "encoder_name": "ConvEncoder",
+                "encoder_params": {
+                    "num_channels": [
+                        32,
+                        32,
+                        32,
+                        32
+                    ],
+                    "kernel_size": 5,
+                    "resolution": [
+                        64,
+                        64
+                    ],
+                    "downsample_encoder": false,
+                    "downsample": 2
+                }
+            },
+            "decoder": {
+                "decoder_name": "ConvDecoder",
+                "decoder_params": {
+                    "num_channels": [
+                        64,
+                        64,
+                        64,
+                        64
+                    ],
+                    "kernel_size": 5,
+                    "resolution": [
+                        64,
+                        64
+                    ],
+                    "downsample_decoder": false,
+                    "upsample": 1
+                }
+            }
+        }
+    },
+    "predictor": {
+        "predictor_name": "SlotSingleAction",
+        "predictor_params": {
+            "num_actions": 8,
+            "action_dim": 24,
+            "slot_dim": 128,
+            "condition_mode": "sum",
+            "use_variability": true,
+            "autoregressive_dynamics": true,
+            "LatentAction": {
+                "model_name": "VQSingleSlotLatentAction",
+                "model_params": {
+                    "emb_dim": 256,
+                    "num_layers": 4,
+                    "num_heads": 4,
+                    "head_dim": 64,
+                    "mlp_dim": 1024,
+                    "use_ema_vq": true
+                }
+            },
+            "DynamicsModel": {
+                "model_name": "SlotGPTDymamicsModel",
+                "model_params": {
+                    "residual": false,
+                    "embed_dim": 256,
+                    "head_dim": 64,
+                    "num_heads": 8,
+                    "mlp_size": 1024,
+                    "num_layers": 4,
+                    "pos_enc_dropout": 0
+                }
+            }
+        }
+    },
+    "behavior_model": {
+        "model_name": "MarkovBehaviorCloner",
+        "model_params": {
+            "emb_dim": 128,
+            "num_layers": 4,
+            "num_heads": 8,
+            "head_dim": 64,
+            "mlp_dim": 512
+        }
+    },
+    "action_decoder": {
+        "model_name": "MLPDecoder",
+        "model_params": {
+            "in_dim": 24,
+            "out_dim": 4,
+            "hidden_dim": [
+                128,
+                128
+            ]
+        }
+    },
+    "loss": [
+        {
+            "type": "latent_action_mse",
+            "weight": 1
+        },
+        {
+            "type": "action_mse",
+            "weight": 0.01
+        }
+    ],
+    "training": {
+        "num_epochs": 1000,
+        "save_frequency": 25,
+        "log_frequency": 100,
+        "image_log_frequency": 300,
+        "batch_size": 8,
+        "train_iters_per_epoch": 1000,
+        "valid_iters_per_epoch": 1000,
+        "lr": 0.0002,
+        "scheduler": "cosine_annealing",
+        "scheduler_steps": 300000,
+        "lr_warmup": true,
+        "warmup_steps": 2000,
+        "gradient_clipping": true,
+        "clipping_max_value": 0.05
+    },
+    "_general": {}
+}

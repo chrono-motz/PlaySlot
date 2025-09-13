@@ -1,0 +1,138 @@
+Total Params: 7485616
+
+VQSingleSlotLatentAction
+Params: 3201840
+VQSingleSlotLatentAction(
+  (mean_fc): Linear(in_features=256, out_features=24, bias=True)
+  (variance_fc): Linear(in_features=256, out_features=24, bias=True)
+  (quantizer): EmaVectorQuantizer(
+    (vq): VectorQuantizer(
+      (embeddings): ModuleDict(
+        (0): Embedding(8, 24)
+      )
+    )
+  )
+  (slot_encoder): Sequential(
+    (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+    (1): Linear(in_features=128, out_features=256, bias=True)
+  )
+  (transformer): Sequential(
+    (0): TransformerEncoderBlock(
+      (ln_mlp): LayerNorm((256,), eps=1e-06, elementwise_affine=True)
+      (mlp): MLP(
+        (mlp): Sequential(
+          (0): Linear(in_features=256, out_features=1024, bias=True)
+          (1): GELU(approximate='none')
+          (2): Linear(in_features=1024, out_features=256, bias=True)
+        )
+      )
+      (ln_att): LayerNorm((256,), eps=1e-06, elementwise_affine=True)
+      (attn): MultiHeadSelfAttention(
+        (q): Linear(in_features=256, out_features=256, bias=False)
+        (k): Linear(in_features=256, out_features=256, bias=False)
+        (v): Linear(in_features=256, out_features=256, bias=False)
+        (out_proj): Sequential(
+          (0): Linear(in_features=256, out_features=256, bias=True)
+          (1): Dropout(p=0.0, inplace=False)
+        )
+      )
+    )
+    (1): TransformerEncoderBlock(
+      (ln_mlp): LayerNorm((256,), eps=1e-06, elementwise_affine=True)
+      (mlp): MLP(
+        (mlp): Sequential(
+          (0): Linear(in_features=256, out_features=1024, bias=True)
+          (1): GELU(approximate='none')
+          (2): Linear(in_features=1024, out_features=256, bias=True)
+        )
+      )
+      (ln_att): LayerNorm((256,), eps=1e-06, elementwise_affine=True)
+      (attn): MultiHeadSelfAttention(
+        (q): Linear(in_features=256, out_features=256, bias=False)
+        (k): Linear(in_features=256, out_features=256, bias=False)
+        (v): Linear(in_features=256, out_features=256, bias=False)
+        (out_proj): Sequential(
+          (0): Linear(in_features=256, out_features=256, bias=True)
+          (1): Dropout(p=0.0, inplace=False)
+        )
+      )
+    )
+    (2): TransformerEncoderBlock(
+      (ln_mlp): LayerNorm((256,), eps=1e-06, elementwise_affine=True)
+      (mlp): MLP(
+        (mlp): Sequential(
+          (0): Linear(in_features=256, out_features=1024, bias=True)
+          (1): GELU(approximate='none')
+          (2): Linear(in_features=1024, out_features=256, bias=True)
+        )
+      )
+      (ln_att): LayerNorm((256,), eps=1e-06, elementwise_affine=True)
+      (attn): MultiHeadSelfAttention(
+        (q): Linear(in_features=256, out_features=256, bias=False)
+        (k): Linear(in_features=256, out_features=256, bias=False)
+        (v): Linear(in_features=256, out_features=256, bias=False)
+        (out_proj): Sequential(
+          (0): Linear(in_features=256, out_features=256, bias=True)
+          (1): Dropout(p=0.0, inplace=False)
+        )
+      )
+    )
+    (3): TransformerEncoderBlock(
+      (ln_mlp): LayerNorm((256,), eps=1e-06, elementwise_affine=True)
+      (mlp): MLP(
+        (mlp): Sequential(
+          (0): Linear(in_features=256, out_features=1024, bias=True)
+          (1): GELU(approximate='none')
+          (2): Linear(in_features=1024, out_features=256, bias=True)
+        )
+      )
+      (ln_att): LayerNorm((256,), eps=1e-06, elementwise_affine=True)
+      (attn): MultiHeadSelfAttention(
+        (q): Linear(in_features=256, out_features=256, bias=False)
+        (k): Linear(in_features=256, out_features=256, bias=False)
+        (v): Linear(in_features=256, out_features=256, bias=False)
+        (out_proj): Sequential(
+          (0): Linear(in_features=256, out_features=256, bias=True)
+          (1): Dropout(p=0.0, inplace=False)
+        )
+      )
+    )
+  )
+)
+
+SlotGPTDymamicsModel
+Params: 4283776
+SlotGPTDymamicsModel(
+  (tok_emb): Linear(in_features=128, out_features=256, bias=True)
+  (action_emb): Linear(in_features=24, out_features=256, bias=True)
+  (variability_emb): Linear(in_features=24, out_features=256, bias=True)
+  (regression_head): Sequential(
+    (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+    (1): Linear(in_features=256, out_features=128, bias=True)
+  )
+  (pos_emb): SlotPositionalEncoding(
+    (dropout): Dropout(p=0, inplace=False)
+  )
+  (dynamics_model): ModuleList(
+    (0-3): 4 x TransformerDecoder(
+      (ln_mlp): LayerNorm((256,), eps=1e-06, elementwise_affine=True)
+      (mlp): MLP(
+        (mlp): Sequential(
+          (0): Linear(in_features=256, out_features=1024, bias=True)
+          (1): GELU(approximate='none')
+          (2): Linear(in_features=1024, out_features=256, bias=True)
+        )
+      )
+      (ln_att): LayerNorm((256,), eps=1e-06, elementwise_affine=True)
+      (attn): MultiHeadSelfAttention(
+        (q): Linear(in_features=256, out_features=512, bias=False)
+        (k): Linear(in_features=256, out_features=512, bias=False)
+        (v): Linear(in_features=256, out_features=512, bias=False)
+        (out_proj): Sequential(
+          (0): Linear(in_features=512, out_features=256, bias=True)
+          (1): Dropout(p=0, inplace=False)
+        )
+      )
+    )
+  )
+)

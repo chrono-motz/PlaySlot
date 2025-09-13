@@ -1,0 +1,128 @@
+Total Params: 0
+
+Learned
+Params: 0
+Learned()
+
+TransformerEncoderBlock
+Params: 0
+TransformerEncoderBlock(
+  (ln_mlp): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
+  (mlp): MLP(
+    (mlp): Sequential(
+      (0): Linear(in_features=128, out_features=512, bias=True)
+      (1): GELU(approximate='none')
+      (2): Linear(in_features=512, out_features=128, bias=True)
+    )
+  )
+  (ln_att): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
+  (attn): MultiHeadSelfAttention(
+    (q): Linear(in_features=128, out_features=128, bias=False)
+    (k): Linear(in_features=128, out_features=128, bias=False)
+    (v): Linear(in_features=128, out_features=128, bias=False)
+    (out_proj): Identity()
+  )
+)
+
+SimpleConvEncoder
+Params: 0
+SimpleConvEncoder(
+  (encoder): Sequential(
+    (0): ConvBlock(
+      (block): Sequential(
+        (0): Conv2d(3, 32, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+        (1): ReLU()
+      )
+    )
+    (1): ConvBlock(
+      (block): Sequential(
+        (0): Conv2d(32, 32, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+        (1): ReLU()
+      )
+    )
+    (2): ConvBlock(
+      (block): Sequential(
+        (0): Conv2d(32, 32, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+        (1): ReLU()
+      )
+    )
+    (3): ConvBlock(
+      (block): Sequential(
+        (0): Conv2d(32, 32, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+      )
+    )
+  )
+)
+
+SoftPositionEmbed
+Params: 0
+SoftPositionEmbed(
+  (projection): Conv2d(4, 32, kernel_size=(1, 1), stride=(1, 1))
+)
+
+Sequential
+Params: 0
+Sequential(
+  (0): LayerNorm((32,), eps=1e-05, elementwise_affine=True)
+  (1): Linear(in_features=32, out_features=128, bias=True)
+  (2): ReLU()
+  (3): Linear(in_features=128, out_features=128, bias=True)
+)
+
+SoftPositionEmbed
+Params: 0
+SoftPositionEmbed(
+  (projection): Conv2d(4, 128, kernel_size=(1, 1), stride=(1, 1))
+)
+
+Decoder
+Params: 0
+Decoder(
+  (decoder): Sequential(
+    (0): ConvBlock(
+      (block): Sequential(
+        (0): Conv2d(128, 64, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+        (1): ReLU()
+      )
+    )
+    (1): Upsample(scale_factor=1)
+    (2): ConvBlock(
+      (block): Sequential(
+        (0): Conv2d(64, 64, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+        (1): ReLU()
+      )
+    )
+    (3): Upsample(scale_factor=1)
+    (4): ConvBlock(
+      (block): Sequential(
+        (0): Conv2d(64, 64, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+        (1): ReLU()
+      )
+    )
+    (5): Upsample(scale_factor=1)
+    (6): ConvBlock(
+      (block): Sequential(
+        (0): Conv2d(64, 64, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+        (1): ReLU()
+      )
+    )
+    (7): Conv2d(64, 4, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+  )
+)
+
+SlotAttention
+Params: 0
+SlotAttention(
+  (norm_input): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+  (norm_slot): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+  (norm_mlp): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+  (to_q): Linear(in_features=128, out_features=128, bias=False)
+  (to_k): Linear(in_features=128, out_features=128, bias=False)
+  (to_v): Linear(in_features=128, out_features=128, bias=False)
+  (gru): GRUCell(128, 128)
+  (mlp): Sequential(
+    (0): Linear(in_features=128, out_features=256, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=256, out_features=128, bias=True)
+  )
+)

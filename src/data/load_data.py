@@ -10,7 +10,6 @@ from configs import get_available_configs
 from lib.logger import print_
 
 
-
 def load_data(exp_params, split="train"):
     """
     Loading a dataset given the parameters
@@ -30,6 +29,10 @@ def load_data(exp_params, split="train"):
     db_params = exp_params["dataset"]
     dataset_name = db_params["dataset_name"]
     DATASETS = get_available_configs("datasets")    
+    
+    # We add the new dataset name to the list of available datasets
+    DATASETS.append("lerobot/aloha_sim_transfer_cube_human")
+
     if dataset_name not in DATASETS:
         raise NotImplementedError(
                 f"""ERROR! Dataset'{dataset_name}' is not available.
@@ -51,8 +54,8 @@ def load_data(exp_params, split="train"):
     elif dataset_name == "Sketchy":
         from data.Sketchy import Sketchy
         dataset = Sketchy(split=split, **db_params)
-    # MetaWorld ButtonPress Datasets
-    elif dataset_name == "ButtonPress":
+    # MetaWorld ButtonPress Datasets or LeRobot Dataset
+    elif dataset_name == "ButtonPress" or dataset_name == "lerobot/aloha_sim_transfer_cube_human":
         from data.ButtonPress import ButtonPress
         dataset = ButtonPress(split=split, **db_params)
     elif dataset_name == "ButtonPress_ExpertDemos":
@@ -98,21 +101,14 @@ def unwrap_batch_data(exp_params, batch_data):
     if exp_params["dataset"]["dataset_name"] in ["GridShapes"]:
         videos, targets, meta = batch_data
         others = {**others, **meta}
-    elif exp_params["dataset"]["dataset_name"] in [
-                "ButtonPress", "ButtonPress_ExpertDemos",
-                "BlockPush", "BlockPush_ExpertDemos",
-                "Sketchy"
-            ]: 
+    else: # This covers all other datasets that return a tuple of (videos, targets, all_reps)
         videos, targets, all_reps = batch_data
         others["actions"] = all_reps.get("actions")
-    else:
-        dataset_name = exp_params["dataset"]["dataset_name"]
-        raise NotImplementedError(f"Dataset {dataset_name} is not supported...")
     return videos, targets, initializer_kwargs, others
 
 
 def set_expert_policy_dataset(db_params):
-    """ 
+    """
     Exchanging the current dataset with a variant using an ExpertPolicy
     """
     dataset_name = db_params["dataset_name"]
@@ -133,7 +129,7 @@ def set_expert_policy_blockpush(db_params):
     if "BlockPush" not in dataset_name:
         raise NameError(f"{dataset_name = } must be a 'BlockPush' variant...")
     print_(f"Using Expert Policy dataset variant:")
-    
+
     print_(f"  -->Exchanging db from {dataset_name} to 'BlockPush_ExpertDemos'...")
     db_params["dataset_name"] = "BlockPush_ExpertDemos"    
     db_params["datapath"] = os.path.join(
@@ -153,16 +149,13 @@ def set_expert_policy_buttonpress(db_params):
     if "ButtonPress" not in dataset_name:
         raise NameError(f"{dataset_name = } must be a 'ButtonPress' variant...")
     print_(f"Using Expert Policy dataset variant:")
-    
+
     print_(f"  -->Exchanging db from {dataset_name} to 'ButtonPress_ExpertDemos'...")
     db_params["dataset_name"] = "ButtonPress_ExpertDemos"
     db_params["datapath"] = os.path.join(
             os.path.dirname(db_params["datapath"]),
             "Expert_ButtonPress"
-        )    
+        )
     if "num_expert_demos" not in db_params:
         db_params["num_expert_demos"] = -1
     return db_params
-
-
-#
